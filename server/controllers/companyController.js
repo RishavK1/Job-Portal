@@ -3,6 +3,7 @@ import bcrypt from "bcrypt";
 import { v2 as cloudinary } from "cloudinary";
 import generateToken from "../utils/generateToken.js";
 import Job from "../models/Job.js"
+import JobApplication from "../models/JobApplication.js";
 
 // Register company
 export const registerCompany = async (req, res) => {
@@ -65,7 +66,7 @@ export const loginCompany = async (req, res) => {
 
         const company = await Company.findOne({ email });
 
-        if (bcrypt.compare(password, company.password)) {
+        if (await bcrypt.compare(password, company.password)) {
             res.json({
               success: true,
               company: {
@@ -94,7 +95,18 @@ export const loginCompany = async (req, res) => {
 };
 
 // get company data
-export const getCompanyData = async (req, res) => {};
+export const getCompanyData = async (req, res) => {
+
+  try {
+       const company = req.company;
+     res.json({ success: true, company });
+   } catch (error) {
+     res.json({
+       success: false,
+       message: error.message,
+     });
+   }
+};
 
 // post a new job
 
@@ -133,7 +145,29 @@ export const getCompanyJobApplicants = async (req, res) => {};
 
 // get cpmpany posted jobs
 
-export const getCompanyPostedJobs = async (req, res) => {};
+export const getCompanyPostedJobs = async (req, res) => {
+
+  try {
+    const companyId = req.company._id;
+
+    const jobs = await Job.find({ companyId });
+
+    // adding no of applicants info in data
+  
+    const jobsData = await Promise.all(jobs.map(async (job) => {
+      const applicants = await JobApplication.find({ jobId: job._id })
+      
+      return {...job.toObject(), applicants:applicants.length}
+    }))
+    
+    res.json({success:true, jobsData})
+  } catch (error) {
+    res.json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
 
 // change job application status
 
@@ -141,4 +175,26 @@ export const changeJobApplicationStatus = async (req, res) => {};
 
 // change job visibility
 
-export const changeVisibility = async (req, res) => {};
+export const changeVisibility = async (req, res) => {
+
+  try {
+    const { id } = req.body;
+
+    const companyId = req.company._id;
+
+    const job = await Job.findById(id);
+
+    if (companyId.toString() === job.companyId.toString()) {
+      job.visible = !job.visible;
+    }
+
+    await job.save();
+
+    res.json({ success: true, job });
+  } catch (error) {
+    res.json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
