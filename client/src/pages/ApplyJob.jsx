@@ -146,7 +146,7 @@ const ApplyJob = () => {
                 dangerouslySetInnerHTML={{ __html: jobData.description }}
               ></div>
               <button
-                onCanPlay={applyHandler}
+                onClick={applyHandler}
                 className="bg-blue-600 p-2.5 px-10 text-white rounded mt-10"
               >
                 {isAlreadyApplied ? "Already Applied" : "Apply now"}

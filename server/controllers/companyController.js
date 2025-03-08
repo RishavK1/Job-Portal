@@ -220,7 +220,7 @@ export const changeVisibility = async (req, res) => {
 
     await job.save();
 
-    res.json({ success: true, job });
+    res.json({ success: true, job , message:"Visibility changed"});
   } catch (error) {
     res.json({
       success: false,
